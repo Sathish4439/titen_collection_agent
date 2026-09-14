@@ -13,10 +13,15 @@ class AppStrings {
   static const String welcomeBack = 'Welcome back!!';
   static const String pleaseSignIn = 'Please sign in to continue';
   static const String phoneLabel = 'PHONE NUMBER';
-  static const String phonePlaceholder = '+91 56455 565665';
+  static const String phonePlaceholder = '+91 96455 54566';
+  static const String passcodeLabel = '4-DIGIT PASSCODE';
+  static const String passcodePlaceholder = '1234';
   static const String logInButton = 'Log In';
   static const String phoneRequiredError = 'Please enter your phone number';
-  static const String phoneInvalidError = 'Please enter a valid 10-digit phone number';
+  static const String phoneInvalidError = 'Please enter a valid phone number';
+  static const String passcodeRequiredError = 'Please enter your 4-digit passcode';
+  static const String passcodeInvalidError = 'Passcode must be 4 digits';
+  static const String tenantIdRequiredError = 'Tenant ID is required';
 
   // Room Management Screen
   static const String totalRooms = 'Total Rooms';
@@ -66,4 +71,20 @@ class AppStrings {
   static const String labelStatus = 'Status';
   static const String statusActive = 'Active';
   static const String statusInactive = 'Inactive';
+
+  // Collection History Screen
+  static const String collectionHistoryTitle = 'Collection History';
+  static const String titanPg = 'Titan PG';
+  static const String searchTransactionsHint = 'Search transactions';
+  static const String paymentChannels = 'Payment Channels';
+  static const String showingAll = 'Showing All';
+  static const String todayGroup = 'TODAY';
+  static const String yesterdayGroup = 'YESTERDAY';
+  static const String channelAll = 'All';
+  static const String channelCash = 'Cash';
+  static const String channelUpi = 'UPI';
+  static const String channelCard = 'Card';
+  static const String channelBankTransfer = 'Bank Transfer';
+  static const String channelCheque = 'Cheque';
+  static const String noTransactionsFound = 'No transactions found';
 }

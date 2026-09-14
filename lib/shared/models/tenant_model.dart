@@ -1,6 +1,7 @@
 /// Tenant Domain Model with Manual JSON serialization
 class TenantModel {
   final String id;
+  final int? userId;
   final String customerId;
   final String name;
   final String email;
@@ -14,9 +15,19 @@ class TenantModel {
   final String roomNumber;
   final String blockName;
   final String status;
+  
+  // Payment Integration Fields from Backend
+  final int? paymentId;
+  final String paymentStatus;
+  final double amountDue;
+  final double rentPaidAmount;
+  final double balancePayable;
+  final String dueDate;
+  final String paymentCycleStartDate;
 
   const TenantModel({
     required this.id,
+    this.userId,
     required this.customerId,
     required this.name,
     required this.email,
@@ -30,7 +41,16 @@ class TenantModel {
     required this.roomNumber,
     required this.blockName,
     required this.status,
+    this.paymentId,
+    this.paymentStatus = 'due',
+    this.amountDue = 0.0,
+    this.rentPaidAmount = 0.0,
+    this.balancePayable = 0.0,
+    this.dueDate = '',
+    this.paymentCycleStartDate = '',
   });
+
+  bool get isPaid => paymentStatus.toLowerCase() == 'paid' || (amountDue > 0 && rentPaidAmount >= amountDue);
 
   String get initials {
     final parts = name.trim().split(' ');
@@ -43,48 +63,75 @@ class TenantModel {
   }
 
   factory TenantModel.fromJson(Map<String, dynamic> json) {
+    final rawUserId = json['user_id'] ?? json['userId'];
+    final parsedUserId = rawUserId != null ? int.tryParse(rawUserId.toString()) : null;
+
+    final rawPaymentId = json['payment_id'] ?? json['paymentId'];
+    final parsedPaymentId = rawPaymentId != null ? int.tryParse(rawPaymentId.toString()) : null;
+
+    final parsedAmountDue = double.tryParse(json['amount_due']?.toString() ?? json['amountDue']?.toString() ?? '0') ?? 0.0;
+    final parsedRentPaid = double.tryParse(json['rent_paid_amount']?.toString() ?? json['rentPaidAmount']?.toString() ?? '0') ?? 0.0;
+    final parsedBalance = double.tryParse(json['balance_payable']?.toString() ?? json['balancePayable']?.toString() ?? '0') ?? parsedAmountDue;
+
     return TenantModel(
-      id: json['id'] as String? ?? '',
-      customerId: json['customerId'] as String? ?? '',
-      name: json['name'] as String? ?? '',
-      email: json['email'] as String? ?? '',
-      phone: json['phone'] as String? ?? '',
-      dob: json['dob'] as String? ?? '',
-      joiningDate: json['joiningDate'] as String? ?? '',
-      gender: json['gender'] as String? ?? '',
+      id: (json['id'] ?? parsedUserId?.toString() ?? '').toString(),
+      userId: parsedUserId,
+      customerId: (json['customer_id'] ?? json['customerId'] ?? '').toString(),
+      name: (json['name'] ?? '').toString(),
+      email: (json['email'] ?? '').toString(),
+      phone: (json['phone'] ?? '').toString(),
+      dob: (json['dob'] ?? '').toString(),
+      joiningDate: (json['joining_date'] ?? json['joiningDate'] ?? '').toString(),
+      gender: (json['gender'] ?? '').toString(),
       idProofs: (json['idProofs'] as List<dynamic>?)
               ?.map((e) => e.toString())
               .toList() ??
           const [],
-      emergencyContact1: json['emergencyContact1'] as String? ?? '',
-      emergencyContact2: json['emergencyContact2'] as String? ?? '',
-      roomNumber: json['roomNumber'] as String? ?? '',
-      blockName: json['blockName'] as String? ?? '',
-      status: json['status'] as String? ?? 'Active',
+      emergencyContact1: (json['emergencyContact1'] ?? json['emergency_number_one'] ?? '').toString(),
+      emergencyContact2: (json['emergencyContact2'] ?? json['emergency_number_two'] ?? '').toString(),
+      roomNumber: (json['room_number'] ?? json['roomNumber'] ?? '').toString(),
+      blockName: (json['block_name'] ?? json['blockName'] ?? '').toString(),
+      status: (json['status'] ?? 'Active').toString(),
+      paymentId: parsedPaymentId,
+      paymentStatus: (json['payment_status'] ?? json['paymentStatus'] ?? 'due').toString(),
+      amountDue: parsedAmountDue,
+      rentPaidAmount: parsedRentPaid,
+      balancePayable: parsedBalance,
+      dueDate: (json['due_date'] ?? json['dueDate'] ?? '').toString(),
+      paymentCycleStartDate: (json['payment_cycle_start_date'] ?? json['paymentCycleStartDate'] ?? '').toString(),
     );
   }
 
   Map<String, dynamic> toJson() {
     return {
       'id': id,
-      'customerId': customerId,
+      'user_id': userId,
+      'customer_id': customerId,
       'name': name,
       'email': email,
       'phone': phone,
       'dob': dob,
-      'joiningDate': joiningDate,
+      'joining_date': joiningDate,
       'gender': gender,
       'idProofs': idProofs,
       'emergencyContact1': emergencyContact1,
       'emergencyContact2': emergencyContact2,
-      'roomNumber': roomNumber,
-      'blockName': blockName,
+      'room_number': roomNumber,
+      'block_name': blockName,
       'status': status,
+      'payment_id': paymentId,
+      'payment_status': paymentStatus,
+      'amount_due': amountDue,
+      'rent_paid_amount': rentPaidAmount,
+      'balance_payable': balancePayable,
+      'due_date': dueDate,
+      'payment_cycle_start_date': paymentCycleStartDate,
     };
   }
 
   TenantModel copyWith({
     String? id,
+    int? userId,
     String? customerId,
     String? name,
     String? email,
@@ -98,9 +145,17 @@ class TenantModel {
     String? roomNumber,
     String? blockName,
     String? status,
+    int? paymentId,
+    String? paymentStatus,
+    double? amountDue,
+    double? rentPaidAmount,
+    double? balancePayable,
+    String? dueDate,
+    String? paymentCycleStartDate,
   }) {
     return TenantModel(
       id: id ?? this.id,
+      userId: userId ?? this.userId,
       customerId: customerId ?? this.customerId,
       name: name ?? this.name,
       email: email ?? this.email,
@@ -114,6 +169,13 @@ class TenantModel {
       roomNumber: roomNumber ?? this.roomNumber,
       blockName: blockName ?? this.blockName,
       status: status ?? this.status,
+      paymentId: paymentId ?? this.paymentId,
+      paymentStatus: paymentStatus ?? this.paymentStatus,
+      amountDue: amountDue ?? this.amountDue,
+      rentPaidAmount: rentPaidAmount ?? this.rentPaidAmount,
+      balancePayable: balancePayable ?? this.balancePayable,
+      dueDate: dueDate ?? this.dueDate,
+      paymentCycleStartDate: paymentCycleStartDate ?? this.paymentCycleStartDate,
     );
   }
 }

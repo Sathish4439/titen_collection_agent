@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'package:provider/provider.dart';
+import 'package:collection_agent/app/routes/app_routes.dart';
 import 'package:collection_agent/core/constants/app_colors.dart';
 import 'package:collection_agent/core/constants/app_strings.dart';
 import 'package:collection_agent/core/theme/app_text_styles.dart';
@@ -26,9 +28,14 @@ class RoomManagementScreen extends StatelessWidget {
       backgroundColor: AppColors.scaffoldBackground,
       body: SafeArea(
         child: MobileFrameWrapper(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-            child: Column(
+          child: RefreshIndicator(
+            color: AppColors.success,
+            backgroundColor: Colors.white,
+            onRefresh: () => context.read<RoomManagementViewModel>().loadData(isRefresh: true),
+            child: SingleChildScrollView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+              child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 // Top App Header
@@ -48,12 +55,32 @@ class RoomManagementScreen extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(width: 10),
-                    Text(
-                      AppStrings.adminHeaderTitle,
-                      style: AppTextStyles.titleMedium.copyWith(
-                        color: AppColors.success,
-                        fontWeight: FontWeight.w800,
-                        fontSize: 18,
+                    Expanded(
+                      child: Text(
+                        AppStrings.adminHeaderTitle,
+                        style: AppTextStyles.titleMedium.copyWith(
+                          color: AppColors.success,
+                          fontWeight: FontWeight.w800,
+                          fontSize: 18,
+                        ),
+                      ),
+                    ),
+                    // History Navigation Button
+                    InkWell(
+                      onTap: () => Get.toNamed(AppRoutes.collectionHistory),
+                      borderRadius: BorderRadius.circular(8),
+                      child: Container(
+                        padding: const EdgeInsets.all(6),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(color: AppColors.border, width: 1.2),
+                        ),
+                        child: const Icon(
+                          Icons.receipt_long_rounded,
+                          size: 20,
+                          color: AppColors.textPrimary,
+                        ),
                       ),
                     ),
                   ],
@@ -139,6 +166,7 @@ class RoomManagementScreen extends StatelessWidget {
           ),
         ),
       ),
-    );
-  }
+    ),
+  );
+}
 }

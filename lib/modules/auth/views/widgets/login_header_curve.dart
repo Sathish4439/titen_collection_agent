@@ -29,7 +29,7 @@ class LoginHeaderCurve extends StatelessWidget {
               children: [
                 Row(
                   mainAxisSize: MainAxisSize.min,
-                  children: [
+                  children: [ 
                     Text(
                       'NESTPILOT',
                       style: GoogleFonts.inter(

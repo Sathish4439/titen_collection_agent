@@ -3,6 +3,7 @@ import 'package:collection_agent/core/constants/app_strings.dart';
 import 'package:collection_agent/core/theme/app_text_styles.dart';
 import 'package:collection_agent/modules/auth/views/widgets/login_button.dart';
 import 'package:collection_agent/modules/auth/views/widgets/login_header_curve.dart';
+import 'package:collection_agent/modules/auth/views/widgets/login_passcode_field.dart';
 import 'package:collection_agent/modules/auth/views/widgets/login_phone_field.dart';
 import 'package:collection_agent/shared/widgets/mobile_frame_wrapper.dart';
 
@@ -45,8 +46,10 @@ class LoginScreen extends StatelessWidget {
                         color: Colors.grey.shade600,
                       ),
                     ),
-                    const SizedBox(height: 36),
+                    const SizedBox(height: 32),
                     const LoginPhoneField(),
+                    const SizedBox(height: 24),
+                    const LoginPasscodeField(),
                     const SizedBox(height: 36),
                     const LoginButton(),
                     const SizedBox(height: 40),

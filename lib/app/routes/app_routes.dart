@@ -5,4 +5,5 @@ class AppRoutes {
   static const String initial = '/login';
   static const String login = '/login';
   static const String roomManagement = '/room-management';
+  static const String collectionHistory = '/collection-history';
 }

@@ -38,4 +38,11 @@ class AppColors {
   // Avatar Initials
   static const Color avatarBg = Color(0xFFF1F5F9);
   static const Color avatarText = Color(0xFF475569);
+
+  // Collection History Screen
+  static const Color heroCardBg = Color(0xFFEFF4FE);
+  static const Color searchFieldBg = Color(0xFFF1F5F9);
+  static const Color chipInactiveBorder = Color(0xFFE2E8F0);
+  static const Color chipInactiveBadgeBg = Color(0xFFF1F5F9);
+  static const Color chipActiveBg = Color(0xFF0D7A53);
 }

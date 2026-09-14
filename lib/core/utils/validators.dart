@@ -28,4 +28,14 @@ class Validators {
     }
     return null;
   }
+
+  static String? validatePasscode(String? value) {
+    if (value == null || value.trim().isEmpty) {
+      return AppStrings.passcodeRequiredError;
+    }
+    if (value.trim().length != 4) {
+      return AppStrings.passcodeInvalidError;
+    }
+    return null;
+  }
 }

@@ -332,9 +332,9 @@ class PaymentBottomSheet extends StatelessWidget {
                       child: ElevatedButton(
                         onPressed: isSubmitting
                             ? null
-                            : () {
-                                final success = context.read<RoomManagementViewModel>().submitPayment();
-                                if (success) {
+                            : () async {
+                                final success = await context.read<RoomManagementViewModel>().submitPayment();
+                                if (success && context.mounted) {
                                   Navigator.of(context).pop();
                                 }
                               },
