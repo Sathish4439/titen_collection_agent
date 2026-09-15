@@ -5,9 +5,9 @@ class AppStrings {
   AppStrings._();
 
   // App & Branding
-  static const String appTitle = 'NestPilot';
+  static const String appTitle = 'TiTANSTAY';
   static const String appSubtitle = 'Collection Agent';
-  static const String adminHeaderTitle = 'NestPilot PG ADMIN';
+  static const String adminHeaderTitle = 'TiTANSTAY PG ADMIN';
 
   // Auth Screen
   static const String welcomeBack = 'Welcome back!!';

@@ -8,6 +8,7 @@ import 'package:collection_agent/core/theme/app_text_styles.dart';
 import 'package:collection_agent/modules/room_management/viewmodel/room_management_viewmodel.dart';
 import 'package:collection_agent/modules/room_management/views/widgets/block_filter_dropdown.dart';
 import 'package:collection_agent/modules/room_management/views/widgets/block_header_widget.dart';
+import 'package:collection_agent/modules/room_management/views/widgets/collector_drawer_widget.dart';
 import 'package:collection_agent/modules/room_management/views/widgets/customer_details_bottom_sheet.dart';
 import 'package:collection_agent/modules/room_management/views/widgets/kpi_card_widget.dart';
 import 'package:collection_agent/modules/room_management/views/widgets/payment_bottom_sheet.dart';
@@ -24,7 +25,11 @@ class RoomManagementScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final GlobalKey<ScaffoldState> scaffoldKey = GlobalKey<ScaffoldState>();
+
     return Scaffold(
+      key: scaffoldKey,
+      drawer: const CollectorDrawerWidget(),
       backgroundColor: AppColors.scaffoldBackground,
       body: SafeArea(
         child: MobileFrameWrapper(
@@ -41,17 +46,21 @@ class RoomManagementScreen extends StatelessWidget {
                 // Top App Header
                 Row(
                   children: [
-                    Container(
-                      padding: const EdgeInsets.all(6),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(8),
-                        border: Border.all(color: AppColors.border, width: 1.2),
-                      ),
-                      child: const Icon(
-                        Icons.domain,
-                        size: 20,
-                        color: AppColors.success,
+                    InkWell(
+                      onTap: () => scaffoldKey.currentState?.openDrawer(),
+                      borderRadius: BorderRadius.circular(8),
+                      child: Container(
+                        padding: const EdgeInsets.all(6),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(color: AppColors.border, width: 1.2),
+                        ),
+                        child: const Icon(
+                          Icons.menu_rounded,
+                          size: 20,
+                          color: AppColors.success,
+                        ),
                       ),
                     ),
                     const SizedBox(width: 10),
