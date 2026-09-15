@@ -21,3 +21,6 @@
 -keepclassmembers class * {
     @com.google.gson.annotations.SerializedName <fields>;
 }
+
+# Flutter deferred components / Play Core warnings suppression
+-dontwarn com.google.android.play.core.**

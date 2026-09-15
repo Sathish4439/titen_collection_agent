@@ -12,7 +12,7 @@ import 'package:collection_agent/shared/repositories/collector_repository.dart';
 class AuthViewModel extends ChangeNotifier {
   final CollectorRepository _repository = CollectorRepository.instance;
 
-  String _phoneNumber = '96455 54566';
+  String _phoneNumber = '6374662089';
   String _passcode = '1234';
   String _tenantId = '0eb298b6-0e52-434c-878e-b369839e9720';
   bool _isLoading = false;

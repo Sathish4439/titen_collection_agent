@@ -50,7 +50,7 @@ class TenantModel {
     this.paymentCycleStartDate = '',
   });
 
-  bool get isPaid => paymentStatus.toLowerCase() == 'paid' || (amountDue > 0 && rentPaidAmount >= amountDue);
+  bool get isPaid => paymentStatus.toLowerCase() == 'paid' || (amountDue <= 0 && balancePayable <= 0);
 
   String get initials {
     final parts = name.trim().split(' ');

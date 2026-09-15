@@ -60,7 +60,9 @@ class ApiClient {
           final storedTenantId = await SecureStorage.instance.read(keyTenantId);
           final activeTenantId = storedTenantId ?? _tenantId;
           if (activeTenantId != null && activeTenantId.isNotEmpty) {
+            options.headers['tenant-id'] = activeTenantId;
             options.headers['tenant_id'] = activeTenantId;
+            options.headers['x-tenant-id'] = activeTenantId;
           }
 
           // 2. Inject JWT Token if not explicitly bypassed
