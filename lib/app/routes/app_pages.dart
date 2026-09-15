@@ -23,8 +23,11 @@ class AppPages {
     ),
     GetPage(
       name: AppRoutes.roomManagement,
-      page: () => ChangeNotifierProvider(
-        create: (_) => RoomManagementViewModel(),
+      page: () => MultiProvider(
+        providers: [
+          ChangeNotifierProvider(create: (_) => RoomManagementViewModel()),
+          ChangeNotifierProvider(create: (_) => AuthViewModel()..loadCachedCollector()),
+        ],
         child: const RoomManagementScreen(),
       ),
       transition: Transition.rightToLeftWithFade,

@@ -55,6 +55,26 @@ class CollectorRepository {
     return collector;
   }
 
+  /// Logout collector and clear session credentials
+  Future<void> logout() async {
+    await SecureStorage.instance.delete(ApiClient.keyToken);
+    await SecureStorage.instance.delete(ApiClient.keyCollectorProfile);
+  }
+
+  /// Get cached collector profile from local storage
+  Future<CollectorModel?> getCachedCollector() async {
+    final raw = await SecureStorage.instance.read(ApiClient.keyCollectorProfile);
+    if (raw != null && raw.isNotEmpty) {
+      try {
+        final Map<String, dynamic> json = jsonDecode(raw);
+        return CollectorModel.fromJson(json);
+      } catch (_) {
+        return null;
+      }
+    }
+    return null;
+  }
+
   /// 2.2 Get Agent Profile & Scope
   Future<Map<String, dynamic>> getProfile() async {
     final response = await _client.get(ApiEndpoints.me);

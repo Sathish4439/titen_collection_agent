@@ -92,4 +92,37 @@ class AuthViewModel extends ChangeNotifier {
       AppToast.error(errorMsg);
     }
   }
+
+  /// Load cached collector profile from local storage if available
+  Future<void> loadCachedCollector() async {
+    if (_authenticatedCollector != null) return;
+    final cached = await _repository.getCachedCollector();
+    if (cached != null) {
+      _authenticatedCollector = cached;
+      _phoneNumber = cached.phone;
+      notifyListeners();
+    }
+  }
+
+  /// Logout current collector, wipe storage, and navigate to login
+  Future<void> logout() async {
+    _isLoading = true;
+    notifyListeners();
+
+    try {
+      await _repository.logout();
+      _authenticatedCollector = null;
+      _passcode = '';
+      _errorMessage = null;
+      _isLoading = false;
+      notifyListeners();
+
+      AppToast.info('Logged out successfully');
+      Get.offAllNamed(AppRoutes.login);
+    } catch (e) {
+      _isLoading = false;
+      notifyListeners();
+      AppToast.error('Logout error: $e');
+    }
+  }
 }
