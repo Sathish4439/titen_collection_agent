@@ -5,7 +5,7 @@ import 'package:collection_agent/core/theme/app_text_styles.dart';
 /// Top KPI Summary Card matching Screen 2
 class KpiCardWidget extends StatelessWidget {
   final String label;
-  final int count;
+  final String value;
   final IconData icon;
   final Color iconColor;
   final Color iconBgColor;
@@ -13,7 +13,7 @@ class KpiCardWidget extends StatelessWidget {
   const KpiCardWidget({
     super.key,
     required this.label,
-    required this.count,
+    required this.value,
     required this.icon,
     required this.iconColor,
     required this.iconBgColor,
@@ -65,11 +65,16 @@ class KpiCardWidget extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 16),
-          Text(
-            count.toString(),
-            style: AppTextStyles.headlineMedium.copyWith(
-              fontSize: 26,
-              fontWeight: FontWeight.w700,
+          FittedBox(
+            fit: BoxFit.scaleDown,
+            alignment: Alignment.centerLeft,
+            child: Text(
+              value,
+              maxLines: 1,
+              style: AppTextStyles.headlineMedium.copyWith(
+                fontSize: 26,
+                fontWeight: FontWeight.w700,
+              ),
             ),
           ),
         ],

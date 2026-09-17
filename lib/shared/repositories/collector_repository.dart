@@ -142,26 +142,17 @@ class CollectorRepository {
           ));
         }
 
-        // Add vacant beds if capacity > tenants count
-        for (int i = rawTenants.length; i < capacity; i++) {
-          beds.add(BedModel(
-            id: 'bed-$rId-${i + 1}',
-            bedNumber: i + 1,
-            tenant: null,
-            amountDue: 0.0,
-            isPaid: false,
+        blockTotalBeds += capacity;
+        blockOccupiedBeds += beds.length;
+
+        if (beds.isNotEmpty) {
+          allRooms.add(RoomModel(
+            id: rId,
+            roomNumber: rNumber,
+            blockId: bId,
+            beds: beds,
           ));
         }
-
-        blockTotalBeds += beds.length;
-        blockOccupiedBeds += beds.where((b) => !b.isVacant).length;
-
-        allRooms.add(RoomModel(
-          id: rId,
-          roomNumber: rNumber,
-          blockId: bId,
-          beds: beds,
-        ));
       }
 
       blocks.add(BlockModel(

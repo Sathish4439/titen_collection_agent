@@ -23,8 +23,12 @@ class TenantRowWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final tenant = bed.tenant;
-    final initials = tenant != null ? tenant.initials : 'V';
-    final name = tenant != null ? tenant.name : 'Vacant Bed';
+    if (tenant == null) {
+      return const SizedBox.shrink();
+    }
+
+    final initials = tenant.initials;
+    final name = tenant.name;
     final formattedAmount = '${AppStrings.currencySymbol} ${bed.amountDue.toStringAsFixed(0).replaceAllMapped(
           RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
           (Match m) => '${m[1]},',
@@ -37,7 +41,7 @@ class TenantRowWidget extends StatelessWidget {
         children: [
           // Initials Avatar
           GestureDetector(
-            onTap: tenant != null ? onDetailsTap : null,
+            onTap: onDetailsTap,
             child: Container(
               width: 44,
               height: 44,
@@ -59,7 +63,7 @@ class TenantRowWidget extends StatelessWidget {
           // Name and Due Amount
           Expanded(
             child: GestureDetector(
-              onTap: tenant != null ? onDetailsTap : null,
+              onTap: onDetailsTap,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [

@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:collection_agent/core/network/api_client.dart';
+import 'package:collection_agent/core/utils/toast_helper.dart';
 import 'package:collection_agent/shared/models/transaction_model.dart';
 import 'package:collection_agent/shared/repositories/collector_repository.dart';
 
@@ -42,10 +44,11 @@ class CollectionHistoryViewModel extends ChangeNotifier {
       if (_searchQuery.trim().isNotEmpty) {
         final query = _searchQuery.toLowerCase().trim();
         final matchesName = tx.tenantName.toLowerCase().contains(query);
+        final matchesCustomer = tx.customerId.toLowerCase().contains(query);
         final matchesRoom = tx.roomNumber.toLowerCase().contains(query);
         final matchesMethod = tx.paymentMethod.toLowerCase().contains(query);
         final matchesRef = tx.transactionReference.toLowerCase().contains(query);
-        if (!matchesName && !matchesRoom && !matchesMethod && !matchesRef) {
+        if (!matchesName && !matchesCustomer && !matchesRoom && !matchesMethod && !matchesRef) {
           return false;
         }
       }
@@ -54,7 +57,8 @@ class CollectionHistoryViewModel extends ChangeNotifier {
       if (_selectedDate != null) {
         final datePrefix =
             '${_selectedDate!.year}-${_selectedDate!.month.toString().padLeft(2, '0')}-${_selectedDate!.day.toString().padLeft(2, '0')}';
-        if (!tx.createdAt.startsWith(datePrefix) && !tx.isToday) {
+        final matchesDate = tx.dateGroup == datePrefix || tx.createdAt.startsWith(datePrefix);
+        if (!matchesDate) {
           return false;
         }
       }
@@ -96,8 +100,14 @@ class CollectionHistoryViewModel extends ChangeNotifier {
       _metrics = result.metrics;
       _transactions = result.transactions;
     } catch (e) {
-      // If network fails, use mock data as fallback
-      _initMockData();
+      debugPrint('[CollectionHistoryViewModel] Error: $e');
+      if (e is ApiException) {
+        AppToast.error(e.message);
+      } else {
+        AppToast.error('Failed to load collection history');
+      }
+      _transactions = [];
+      _metrics = HistoryMetricsModel.empty();
     } finally {
       _isLoading = false;
       notifyListeners();
@@ -128,77 +138,5 @@ class CollectionHistoryViewModel extends ChangeNotifier {
     _selectedDate = null;
     notifyListeners();
     fetchHistory();
-  }
-
-  void _initMockData() {
-    _transactions = [
-      const TransactionModel(
-        transactionId: 881,
-        paymentId: 201,
-        userId: 42,
-        amountPaid: 7500.0,
-        paymentMethod: 'Cash',
-        transactionReference: 'COL-CASH-991823',
-        createdAt: '2026-09-13T14:30:00.000Z',
-        createdTime: '02:30 PM',
-        dateGroup: 'Today',
-        isToday: true,
-        tenantName: 'John Doe',
-        blockName: 'Block A',
-        roomNumber: '101',
-      ),
-      const TransactionModel(
-        transactionId: 882,
-        paymentId: 202,
-        userId: 43,
-        amountPaid: 7500.0,
-        paymentMethod: 'UPI',
-        transactionReference: 'COL-UPI-991824',
-        createdAt: '2026-09-13T15:15:00.000Z',
-        createdTime: '03:15 PM',
-        dateGroup: 'Today',
-        isToday: true,
-        tenantName: 'Ananya Rao',
-        blockName: 'Block A',
-        roomNumber: '101',
-      ),
-    ];
-
-    _recomputeMetrics();
-  }
-
-  void _recomputeMetrics() {
-    double total = 0;
-    double cash = 0;
-    double online = 0;
-    final channelTotals = <String, double>{
-      'all': 0,
-      'cash': 0,
-      'upi': 0,
-      'card': 0,
-      'bank_transfer': 0,
-      'cheque': 0,
-    };
-
-    for (final tx in _transactions) {
-      total += tx.amountPaid;
-      final methodKey = tx.paymentMethod.toLowerCase().replaceAll(' ', '_');
-      channelTotals[methodKey] = (channelTotals[methodKey] ?? 0.0) + tx.amountPaid;
-
-      if (methodKey == 'cash') {
-        cash += tx.amountPaid;
-      } else {
-        online += tx.amountPaid;
-      }
-    }
-    channelTotals['all'] = total;
-
-    _metrics = HistoryMetricsModel(
-      totalCollected: total,
-      cashCollected: cash,
-      onlineCollected: online,
-      transactionCount: _transactions.length,
-      channelTotals: channelTotals,
-    );
   }
 }

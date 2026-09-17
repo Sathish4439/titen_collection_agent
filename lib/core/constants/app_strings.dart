@@ -26,7 +26,9 @@ class AppStrings {
   // Room Management Screen
   static const String totalRooms = 'Total Rooms';
   static const String totalBeds = 'Total Beds';
+  static const String todayCollected = "Today's Collection";
   static const String allBlocks = 'All Blocks';
+  static const String searchRoomsTenantsHint = 'Search by name, email, phone...';
   static const String pay = 'PAY';
   static const String paid = 'PAID';
   static const String currencySymbol = '₹';
@@ -46,10 +48,12 @@ class AppStrings {
   static const String amountLabel = 'Amount *';
   static const String cancel = 'Cancel';
   static const String submitPay = 'Pay';
-  static const String paymentOptionCash = 'Cash';
-  static const String paymentOptionUPI = 'UPI';
   static const String paymentOptionCard = 'Card';
-  static const String paymentOptionNetBanking = 'Net Banking';
+  static const String paymentOptionCheque = 'Cheque';
+  static const String paymentOptionBankTransfer = 'Bank Transfer';
+  static const String paymentOptionUPI = 'Online/UPI';
+  static const String paymentOptionCash = 'Cash';
+  static const String paymentOptionNetBanking = 'Bank Transfer';
   static const String paymentSuccess = 'Payment recorded successfully!';
   static const String paymentInvalidAmount = 'Please enter a valid payment amount';
   static const String paymentExceedsDue = 'Amount cannot exceed amount due';

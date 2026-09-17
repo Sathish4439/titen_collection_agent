@@ -212,10 +212,11 @@ class PaymentBottomSheet extends StatelessWidget {
                       color: AppColors.textSecondary,
                     ),
                     items: [
-                      AppStrings.paymentOptionCash,
-                      AppStrings.paymentOptionUPI,
                       AppStrings.paymentOptionCard,
-                      AppStrings.paymentOptionNetBanking,
+                      AppStrings.paymentOptionCheque,
+                      AppStrings.paymentOptionBankTransfer,
+                      AppStrings.paymentOptionUPI,
+                      AppStrings.paymentOptionCash,
                     ].map((option) {
                       return DropdownMenuItem<String>(
                         value: option,

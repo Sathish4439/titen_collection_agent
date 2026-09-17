@@ -8,20 +8,19 @@ import 'package:collection_agent/shared/models/block_model.dart';
 import 'package:collection_agent/shared/models/room_model.dart';
 import 'package:collection_agent/shared/models/tenant_model.dart';
 import 'package:collection_agent/shared/repositories/collector_repository.dart';
-import 'package:collection_agent/shared/repositories/mock_property_repository.dart';
 
 /// Room Management ViewModel integrating live Titanstay Collector API
 /// STRICT RULES: Extends ChangeNotifier, NO setState(), guards all notifyListeners()
 class RoomManagementViewModel extends ChangeNotifier {
   final CollectorRepository _repository = CollectorRepository.instance;
-  final MockPropertyRepository _mockRepo = MockPropertyRepository.instance;
 
+  List<BlockModel> _allBlocks = [];
   List<BlockModel> _blocks = [];
   String _selectedBlockId = 'ALL';
   List<RoomModel> _rooms = [];
 
-  int _totalRooms = 10;
-  int _totalBeds = 22;
+  int _totalRooms = 0;
+  int _totalBeds = 0;
   double _todayCollected = 0.0;
   bool _isLoading = false;
   String _searchQuery = '';
@@ -42,7 +41,7 @@ class RoomManagementViewModel extends ChangeNotifier {
   }
 
   // Getters
-  List<BlockModel> get blocks => _blocks;
+  List<BlockModel> get blocks => _allBlocks.isNotEmpty ? _allBlocks : _blocks;
   String get selectedBlockId => _selectedBlockId;
   List<RoomModel> get rooms => _rooms;
   int get totalRooms => _totalRooms;
@@ -61,18 +60,35 @@ class RoomManagementViewModel extends ChangeNotifier {
 
   String get currentBlockName {
     if (_selectedBlockId == 'ALL') {
-      return _blocks.isNotEmpty ? _blocks.first.name : 'A-Block';
+      return AppStrings.allBlocks;
     }
-    final block = _blocks.firstWhere(
+    final source = _allBlocks.isNotEmpty ? _allBlocks : _blocks;
+    final block = source.firstWhere(
       (b) => b.id == _selectedBlockId,
-      orElse: () => _blocks.first,
+      orElse: () => source.isNotEmpty
+          ? source.first
+          : const BlockModel(id: '', name: 'Block', totalRooms: 0, occupiedBeds: 0, totalBeds: 0),
     );
     return block.name;
   }
 
   String get currentBlockSummary {
+    if (_selectedBlockId == 'ALL') {
+      final source = _allBlocks.isNotEmpty ? _allBlocks : _blocks;
+      int totalRooms = 0;
+      int occupiedBeds = 0;
+      int totalBeds = 0;
+      int vacantBeds = 0;
+      for (final b in source) {
+        totalRooms += b.totalRooms;
+        occupiedBeds += b.occupiedBeds;
+        totalBeds += b.totalBeds;
+        vacantBeds += b.vacantBeds;
+      }
+      return '$totalRooms ${AppStrings.roomsCountSuffix} • ${AppStrings.bedsCountPrefix} $occupiedBeds/$totalBeds ($vacantBeds ${AppStrings.vacantLabel})';
+    }
     final block = _blocks.isNotEmpty ? _blocks.first : null;
-    if (block == null) return '3 Rooms • Beds: 5/6 (1 vacant)';
+    if (block == null) return '0 Rooms';
     return '${block.totalRooms} ${AppStrings.roomsCountSuffix} • ${AppStrings.bedsCountPrefix} ${block.occupiedBeds}/${block.totalBeds} (${block.vacantBeds} ${AppStrings.vacantLabel})';
   }
 
@@ -88,10 +104,13 @@ class RoomManagementViewModel extends ChangeNotifier {
           : int.tryParse(_selectedBlockId);
 
       final dashboardData = await _repository.getDashboard(
-        search: _searchQuery.isNotEmpty ? _searchQuery : null,
+        search: _searchQuery.trim().isNotEmpty ? _searchQuery.trim() : null,
         blockId: blockIdParam,
       );
 
+      if (_selectedBlockId == 'ALL' || _allBlocks.isEmpty) {
+        _allBlocks = dashboardData.blocks;
+      }
       _blocks = dashboardData.blocks;
       _rooms = dashboardData.rooms;
       _totalRooms = dashboardData.totalRooms;
@@ -101,13 +120,14 @@ class RoomManagementViewModel extends ChangeNotifier {
       for (final r in _rooms) {
         calculatedBeds += r.totalBeds;
       }
-      _totalBeds = calculatedBeds > 0 ? calculatedBeds : 22;
+      _totalBeds = calculatedBeds;
     } catch (e) {
-      // Graceful fallback to mock data if backend connection fails
-      _blocks = _mockRepo.getBlocks();
-      _totalRooms = _mockRepo.getTotalRooms();
-      _totalBeds = _mockRepo.getTotalBeds();
-      _rooms = _mockRepo.getRooms(blockId: _selectedBlockId);
+      debugPrint('[RoomManagementViewModel] Error loading dashboard: $e');
+      if (e is ApiException) {
+        AppToast.error(e.message);
+      } else {
+        AppToast.error('Failed to load dashboard data');
+      }
     } finally {
       _isLoading = false;
       notifyListeners();
@@ -201,14 +221,18 @@ class RoomManagementViewModel extends ChangeNotifier {
     notifyListeners();
 
     try {
-      // Map payment option to DB standard (cash, online, card, bank_transfer)
+      // Map payment option to DB standard (cash, online, card, bank_transfer, cheque)
       String apiMethod = 'cash';
-      if (_selectedPaymentOption == AppStrings.paymentOptionUPI) {
-        apiMethod = 'online';
-      } else if (_selectedPaymentOption == AppStrings.paymentOptionCard) {
+      if (_selectedPaymentOption == AppStrings.paymentOptionCard) {
         apiMethod = 'card';
-      } else if (_selectedPaymentOption == AppStrings.paymentOptionNetBanking) {
+      } else if (_selectedPaymentOption == AppStrings.paymentOptionCheque) {
+        apiMethod = 'cheque';
+      } else if (_selectedPaymentOption == AppStrings.paymentOptionBankTransfer ||
+          _selectedPaymentOption == AppStrings.paymentOptionNetBanking) {
         apiMethod = 'bank_transfer';
+      } else if (_selectedPaymentOption == AppStrings.paymentOptionUPI ||
+          _selectedPaymentOption == 'UPI') {
+        apiMethod = 'online';
       } else {
         apiMethod = 'cash';
       }
@@ -247,19 +271,7 @@ class RoomManagementViewModel extends ChangeNotifier {
           AppToast.error(e.message);
         }
       } else {
-        // Fallback local simulation if offline
-        _mockRepo.recordPayment(
-          bedId: _activeBedForPayment!.id,
-          amount: amountToPay,
-          paymentOption: _selectedPaymentOption,
-        );
-        _rooms = _mockRepo.getRooms(blockId: _selectedBlockId);
-        _activeBedForPayment = null;
-        _activeRoomNumberForPayment = null;
-        paymentAmountController.text = '';
-        notifyListeners();
-        AppToast.success(AppStrings.paymentSuccess);
-        return true;
+        AppToast.error('Failed to process payment');
       }
       return false;
     }

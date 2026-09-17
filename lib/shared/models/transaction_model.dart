@@ -3,6 +3,7 @@ class TransactionModel {
   final int transactionId;
   final int paymentId;
   final int userId;
+  final String customerId;
   final double amountPaid;
   final String paymentMethod;
   final String transactionReference;
@@ -18,6 +19,7 @@ class TransactionModel {
     required this.transactionId,
     required this.paymentId,
     required this.userId,
+    this.customerId = '',
     required this.amountPaid,
     required this.paymentMethod,
     required this.transactionReference,
@@ -52,13 +54,13 @@ class TransactionModel {
     return '₹ $numStr';
   }
 
-  /// User-friendly label matching dropdown options (Cash, UPI, Card, Net Banking)
+  /// User-friendly label matching dropdown options (Card, Cheque, Bank Transfer, Online/UPI, Cash)
   String get displayPaymentMethod {
     final m = paymentMethod.toLowerCase().trim().replaceAll(' ', '_');
     if (m == 'cash') return 'Cash';
-    if (m == 'online' || m == 'upi') return 'UPI';
+    if (m == 'online' || m == 'upi') return 'Online/UPI';
     if (m == 'card') return 'Card';
-    if (m == 'bank_transfer' || m == 'net_banking') return 'Net Banking';
+    if (m == 'bank_transfer' || m == 'net_banking') return 'Bank Transfer';
     if (m == 'cheque') return 'Cheque';
     return paymentMethod.isNotEmpty
         ? '${paymentMethod[0].toUpperCase()}${paymentMethod.substring(1)}'
@@ -66,18 +68,24 @@ class TransactionModel {
   }
 
   factory TransactionModel.fromJson(Map<String, dynamic> json) {
+    final rawName = json['user_name'] ?? json['tenant_name'] ?? json['name'];
+    final parsedName = (rawName != null && rawName.toString().trim().isNotEmpty)
+        ? rawName.toString().trim()
+        : 'Customer';
+
     return TransactionModel(
       transactionId: json['transaction_id'] as int? ?? 0,
       paymentId: json['payment_id'] as int? ?? 0,
       userId: json['user_id'] as int? ?? 0,
+      customerId: (json['customer_id'] ?? json['customerId'] ?? '').toString(),
       amountPaid: double.tryParse(json['amount_paid']?.toString() ?? '0') ?? 0.0,
       paymentMethod: json['payment_method'] as String? ?? 'Cash',
       transactionReference: json['transaction_reference'] as String? ?? '',
       createdAt: json['created_at'] as String? ?? '',
-      createdTime: json['created_time'] as String? ?? '',
+      createdTime: (json['formatted_time'] ?? json['created_time'] ?? '').toString(),
       dateGroup: json['date_group'] as String? ?? 'Today',
       isToday: json['is_today'] as bool? ?? false,
-      tenantName: json['tenant_name'] as String? ?? 'Tenant',
+      tenantName: parsedName,
       blockName: json['block_name'] as String? ?? '',
       roomNumber: json['room_number'] as String? ?? '',
     );
@@ -88,6 +96,7 @@ class TransactionModel {
       'transaction_id': transactionId,
       'payment_id': paymentId,
       'user_id': userId,
+      'customer_id': customerId,
       'amount_paid': amountPaid.toStringAsFixed(2),
       'payment_method': paymentMethod,
       'transaction_reference': transactionReference,
@@ -96,6 +105,7 @@ class TransactionModel {
       'date_group': dateGroup,
       'is_today': isToday,
       'tenant_name': tenantName,
+      'user_name': tenantName,
       'block_name': blockName,
       'room_number': roomNumber,
     };

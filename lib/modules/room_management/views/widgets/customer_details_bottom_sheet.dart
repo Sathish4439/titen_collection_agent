@@ -23,6 +23,152 @@ class CustomerDetailsBottomSheet extends StatelessWidget {
     );
   }
 
+  String _formatDate(String rawDate) {
+    final trimmed = rawDate.trim();
+    if (trimmed.isEmpty || trimmed.toLowerCase() == 'null') {
+      return 'Not Provided';
+    }
+    try {
+      final parsed = DateTime.tryParse(trimmed);
+      if (parsed != null) {
+        const months = [
+          'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+          'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
+        ];
+        final day = parsed.day.toString().padLeft(2, '0');
+        final month = months[parsed.month - 1];
+        final year = parsed.year.toString();
+        return '$day $month $year';
+      }
+    } catch (_) {}
+    return trimmed;
+  }
+
+  String _formatGender(String rawGender) {
+    final g = rawGender.trim();
+    if (g.isEmpty || g.toLowerCase() == 'null') return 'Not Provided';
+    return g[0].toUpperCase() + g.substring(1).toLowerCase();
+  }
+
+  Widget _buildTextValue(String? val) {
+    final s = val?.trim() ?? '';
+    final isEmpty = s.isEmpty || s.toLowerCase() == 'null' || s.toLowerCase() == 'not provided';
+    return Text(
+      isEmpty ? 'Not Provided' : s,
+      style: AppTextStyles.bodyMedium.copyWith(
+        color: isEmpty ? AppColors.textMuted : AppColors.textPrimary,
+        fontStyle: isEmpty ? FontStyle.italic : FontStyle.normal,
+      ),
+    );
+  }
+
+  Widget _buildInitialsAvatar() {
+    return Container(
+      width: 90,
+      height: 90,
+      decoration: const BoxDecoration(
+        color: AppColors.primaryLight,
+        shape: BoxShape.circle,
+      ),
+      alignment: Alignment.center,
+      child: Text(
+        tenant.initials,
+        style: const TextStyle(
+          fontSize: 32,
+          fontWeight: FontWeight.w800,
+          color: AppColors.primary,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildAvatar() {
+    final url = tenant.profileImageUrl?.trim();
+    if (url != null && url.isNotEmpty && url.toLowerCase() != 'null') {
+      return ClipOval(
+        child: Image.network(
+          url,
+          width: 90,
+          height: 90,
+          fit: BoxFit.cover,
+          errorBuilder: (context, error, stackTrace) => _buildInitialsAvatar(),
+        ),
+      );
+    }
+    return _buildInitialsAvatar();
+  }
+
+  Widget _buildIdProofsList(List<String> proofs) {
+    if (proofs.isEmpty) {
+      return Text(
+        'No ID proofs uploaded',
+        style: AppTextStyles.bodyMedium.copyWith(
+          color: AppColors.textMuted,
+          fontStyle: FontStyle.italic,
+        ),
+      );
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: proofs.asMap().entries.map((entry) {
+        final index = entry.key;
+        final url = entry.value;
+        final isPdf = url.toLowerCase().contains('.pdf');
+        final isImage = url.toLowerCase().contains('.png') ||
+            url.toLowerCase().contains('.jpg') ||
+            url.toLowerCase().contains('.jpeg');
+
+        final iconData = isPdf
+            ? Icons.picture_as_pdf_outlined
+            : (isImage ? Icons.image_outlined : Icons.insert_drive_file_outlined);
+        final iconColor = isPdf
+            ? const Color(0xFFE53935)
+            : (isImage ? const Color(0xFF1E88E5) : AppColors.primary);
+
+        String title;
+        try {
+          final uri = Uri.parse(url);
+          final filename = uri.pathSegments.isNotEmpty ? uri.pathSegments.last : '';
+          if (filename.isNotEmpty) {
+            final ext = filename.contains('.') ? '.${filename.split('.').last}' : '';
+            title = 'Document ${index + 1} ($ext)';
+          } else {
+            title = 'Document ${index + 1}';
+          }
+        } catch (_) {
+          title = 'Document ${index + 1}';
+        }
+
+        return Container(
+          margin: const EdgeInsets.only(bottom: 6),
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+          decoration: BoxDecoration(
+            color: AppColors.scaffoldBackground,
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(color: AppColors.border, width: 0.8),
+          ),
+          child: Row(
+            children: [
+              Icon(iconData, size: 18, color: iconColor),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  title,
+                  style: AppTextStyles.bodySmall.copyWith(
+                    color: AppColors.textPrimary,
+                    fontWeight: FontWeight.w600,
+                  ),
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+            ],
+          ),
+        );
+      }).toList(),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final screenHeight = MediaQuery.of(context).size.height;
@@ -77,19 +223,7 @@ class CustomerDetailsBottomSheet extends StatelessWidget {
               child: Column(
                 children: [
                   // Center Profile Avatar
-                  Container(
-                    width: 90,
-                    height: 90,
-                    decoration: const BoxDecoration(
-                      color: Color(0xFFCBD5E1),
-                      shape: BoxShape.circle,
-                    ),
-                    child: const Icon(
-                      Icons.person,
-                      size: 56,
-                      color: Colors.white,
-                    ),
-                  ),
+                  _buildAvatar(),
                   const SizedBox(height: 20),
                   // Key-Value Table Container
                   Container(
@@ -102,7 +236,7 @@ class CustomerDetailsBottomSheet extends StatelessWidget {
                         _buildTableRow(
                           icon: Icons.person_outline,
                           label: AppStrings.labelName,
-                          valueWidget: Text(tenant.name, style: AppTextStyles.bodyMedium),
+                          valueWidget: _buildTextValue(tenant.name),
                         ),
                         _buildDivider(),
                         _buildTableRow(
@@ -127,76 +261,49 @@ class CustomerDetailsBottomSheet extends StatelessWidget {
                         _buildTableRow(
                           icon: Icons.mail_outline,
                           label: AppStrings.labelEmail,
-                          valueWidget: Text(tenant.email, style: AppTextStyles.bodyMedium),
+                          valueWidget: _buildTextValue(tenant.email),
                         ),
                         _buildDivider(),
                         _buildTableRow(
                           icon: Icons.phone_outlined,
                           label: AppStrings.labelPhone,
-                          valueWidget: Text(tenant.phone, style: AppTextStyles.bodyMedium),
+                          valueWidget: _buildTextValue(tenant.phone),
                         ),
                         _buildDivider(),
                         _buildTableRow(
                           icon: Icons.calendar_today_outlined,
                           label: AppStrings.labelDob,
-                          valueWidget: Text(tenant.dob, style: AppTextStyles.bodyMedium),
+                          valueWidget: _buildTextValue(_formatDate(tenant.dob)),
                         ),
                         _buildDivider(),
                         _buildTableRow(
                           icon: Icons.calendar_today_outlined,
                           label: AppStrings.labelJoiningDate,
-                          valueWidget: Text(tenant.joiningDate, style: AppTextStyles.bodyMedium),
+                          valueWidget: _buildTextValue(_formatDate(tenant.joiningDate)),
                         ),
                         _buildDivider(),
                         _buildTableRow(
+                          icon: Icons.people_outline,
                           label: AppStrings.labelGender,
-                          valueWidget: Text(tenant.gender, style: AppTextStyles.bodyMedium),
+                          valueWidget: _buildTextValue(_formatGender(tenant.gender)),
                         ),
                         _buildDivider(),
                         _buildTableRow(
-                          icon: Icons.edit_document,
+                          icon: Icons.badge_outlined,
                           label: AppStrings.labelIdProofs,
-                          valueWidget: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: tenant.idProofs.map((proof) {
-                              return Padding(
-                                padding: const EdgeInsets.symmetric(vertical: 3),
-                                child: Row(
-                                  children: [
-                                    const Icon(Icons.insert_drive_file_outlined,
-                                        size: 16, color: AppColors.primary),
-                                    const SizedBox(width: 6),
-                                    Expanded(
-                                      child: Text(
-                                        proof,
-                                        style: AppTextStyles.bodySmall.copyWith(
-                                          color: AppColors.primary,
-                                          fontWeight: FontWeight.w500,
-                                        ),
-                                        overflow: TextOverflow.ellipsis,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              );
-                            }).toList(),
-                          ),
+                          valueWidget: _buildIdProofsList(tenant.idProofs),
                         ),
                         _buildDivider(),
                         _buildTableRow(
+                          icon: Icons.contact_phone_outlined,
                           label: AppStrings.labelEmergencyContact1,
-                          valueWidget: Text(
-                            tenant.emergencyContact1,
-                            style: AppTextStyles.bodyMedium,
-                          ),
+                          valueWidget: _buildTextValue(tenant.emergencyContact1),
                         ),
                         _buildDivider(),
                         _buildTableRow(
+                          icon: Icons.contact_phone_outlined,
                           label: AppStrings.labelEmergencyContact2,
-                          valueWidget: Text(
-                            tenant.emergencyContact2,
-                            style: AppTextStyles.bodyMedium,
-                          ),
+                          valueWidget: _buildTextValue(tenant.emergencyContact2),
                         ),
                         _buildDivider(),
                         _buildTableRow(

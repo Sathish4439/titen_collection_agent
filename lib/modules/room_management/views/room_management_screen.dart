@@ -13,6 +13,7 @@ import 'package:collection_agent/modules/room_management/views/widgets/customer_
 import 'package:collection_agent/modules/room_management/views/widgets/kpi_card_widget.dart';
 import 'package:collection_agent/modules/room_management/views/widgets/payment_bottom_sheet.dart';
 import 'package:collection_agent/modules/room_management/views/widgets/room_card_widget.dart';
+import 'package:collection_agent/modules/room_management/views/widgets/room_search_bar_widget.dart';
 import 'package:collection_agent/shared/models/bed_model.dart';
 import 'package:collection_agent/shared/models/room_model.dart';
 import 'package:collection_agent/shared/models/tenant_model.dart';
@@ -42,6 +43,7 @@ class RoomManagementScreen extends StatelessWidget {
               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
               child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.start,
               children: [
                 // Top App Header
                 Row(
@@ -96,15 +98,22 @@ class RoomManagementScreen extends StatelessWidget {
                 ),
                 const SizedBox(height: 20),
                 // Top KPI Summary Cards Row
-                Selector<RoomManagementViewModel, (int, int)>(
-                  selector: (_, vm) => (vm.totalRooms, vm.totalBeds),
-                  builder: (context, counts, _) {
+                Selector<RoomManagementViewModel, (int, double)>(
+                  selector: (_, vm) => (vm.totalRooms, vm.todayCollected),
+                  builder: (context, data, _) {
+                    final totalRooms = data.$1;
+                    final todayCollected = data.$2;
+                    final formattedCollected = '${AppStrings.currencySymbol}${todayCollected.toStringAsFixed(0).replaceAllMapped(
+                          RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
+                          (Match m) => '${m[1]},',
+                        )}';
+
                     return Row(
                       children: [
                         Expanded(
                           child: KpiCardWidget(
                             label: AppStrings.totalRooms,
-                            count: counts.$1,
+                            value: totalRooms.toString(),
                             icon: Icons.domain,
                             iconColor: AppColors.primary,
                             iconBgColor: AppColors.primaryLight,
@@ -113,9 +122,9 @@ class RoomManagementScreen extends StatelessWidget {
                         const SizedBox(width: 14),
                         Expanded(
                           child: KpiCardWidget(
-                            label: AppStrings.totalBeds,
-                            count: counts.$2,
-                            icon: Icons.hotel,
+                            label: AppStrings.todayCollected,
+                            value: formattedCollected,
+                            icon: Icons.payments_outlined,
                             iconColor: AppColors.bedGreen,
                             iconBgColor: AppColors.bedGreenLight,
                           ),
@@ -125,10 +134,15 @@ class RoomManagementScreen extends StatelessWidget {
                   },
                 ),
                 const SizedBox(height: 20),
-                // Dropdown Filter Row (Aligned to right)
-                const Align(
-                  alignment: Alignment.centerRight,
-                  child: BlockFilterDropdown(),
+                // Search Bar and Block Filter Dropdown Row
+                const Row(
+                  children: [
+                    Expanded(
+                      child: RoomSearchBarWidget(),
+                    ),
+                    SizedBox(width: 10),
+                    BlockFilterDropdown(),
+                  ],
                 ),
                 const SizedBox(height: 12),
                 // Block Header Section
