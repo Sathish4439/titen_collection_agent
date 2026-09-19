@@ -17,6 +17,9 @@ class BedModel {
   });
 
   bool get isVacant => tenant == null;
+  double get totalAmount => tenant?.amountDue ?? amountDue;
+  double get paidAmount => tenant?.rentPaidAmount ?? 0.0;
+  double get remainingAmount => tenant?.balancePayable ?? (isPaid ? 0.0 : amountDue);
 
   factory BedModel.fromJson(Map<String, dynamic> json) {
     return BedModel(

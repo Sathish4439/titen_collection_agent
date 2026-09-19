@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'package:collection_agent/core/constants/app_colors.dart';
 import 'package:collection_agent/core/constants/app_strings.dart';
 import 'package:collection_agent/core/theme/app_text_styles.dart';
 import 'package:collection_agent/shared/models/tenant_model.dart';
+import 'package:collection_agent/shared/views/document_viewer_screen.dart';
 
 /// Screen 4: Customer Details & KYC Modal Bottom Sheet
 /// STRICT RULE: Public StatelessWidget, matches Screen 4 pixel-perfect
@@ -98,7 +100,7 @@ class CustomerDetailsBottomSheet extends StatelessWidget {
     return _buildInitialsAvatar();
   }
 
-  Widget _buildIdProofsList(List<String> proofs) {
+  Widget _buildIdProofsList(List<String> proofs, BuildContext context) {
     if (proofs.isEmpty) {
       return Text(
         'No ID proofs uploaded',
@@ -117,7 +119,8 @@ class CustomerDetailsBottomSheet extends StatelessWidget {
         final isPdf = url.toLowerCase().contains('.pdf');
         final isImage = url.toLowerCase().contains('.png') ||
             url.toLowerCase().contains('.jpg') ||
-            url.toLowerCase().contains('.jpeg');
+            url.toLowerCase().contains('.jpeg') ||
+            url.toLowerCase().contains('.webp');
 
         final iconData = isPdf
             ? Icons.picture_as_pdf_outlined
@@ -142,27 +145,69 @@ class CustomerDetailsBottomSheet extends StatelessWidget {
 
         return Container(
           margin: const EdgeInsets.only(bottom: 6),
-          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
           decoration: BoxDecoration(
             color: AppColors.scaffoldBackground,
             borderRadius: BorderRadius.circular(8),
             border: Border.all(color: AppColors.border, width: 0.8),
           ),
-          child: Row(
-            children: [
-              Icon(iconData, size: 18, color: iconColor),
-              const SizedBox(width: 8),
-              Expanded(
-                child: Text(
-                  title,
-                  style: AppTextStyles.bodySmall.copyWith(
-                    color: AppColors.textPrimary,
-                    fontWeight: FontWeight.w600,
-                  ),
-                  overflow: TextOverflow.ellipsis,
+          child: Material(
+            color: Colors.transparent,
+            child: InkWell(
+              borderRadius: BorderRadius.circular(8),
+              onTap: () {
+                Get.to(() => DocumentViewerScreen(
+                  url: url,
+                  title: title,
+                  subtitle: tenant.name,
+                ));
+              },
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                child: Row(
+                  children: [
+                    Icon(iconData, size: 18, color: iconColor),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        title,
+                        style: AppTextStyles.bodySmall.copyWith(
+                          color: AppColors.textPrimary,
+                          fontWeight: FontWeight.w600,
+                        ),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                    const SizedBox(width: 6),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                      decoration: BoxDecoration(
+                        color: AppColors.primaryLight,
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            AppStrings.view,
+                            style: AppTextStyles.bodySmall.copyWith(
+                              color: AppColors.primary,
+                              fontSize: 11,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                          const SizedBox(width: 3),
+                          const Icon(
+                            Icons.arrow_forward_ios_rounded,
+                            size: 10,
+                            color: AppColors.primary,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
                 ),
               ),
-            ],
+            ),
           ),
         );
       }).toList(),
@@ -187,27 +232,32 @@ class CustomerDetailsBottomSheet extends StatelessWidget {
         children: [
           // Header Row
           Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              RichText(
-                text: TextSpan(
-                  text: AppStrings.customerDetailsPrefix,
-                  style: AppTextStyles.titleMedium.copyWith(
-                    fontWeight: FontWeight.w800,
-                    color: AppColors.textPrimary,
-                    fontSize: 18,
-                  ),
-                  children: [
-                    TextSpan(
-                      text: tenant.name,
-                      style: const TextStyle(
-                        color: AppColors.success,
-                        fontWeight: FontWeight.w800,
-                      ),
+              Expanded(
+                child: RichText(
+                  text: TextSpan(
+                    text: AppStrings.customerDetailsPrefix,
+                    style: AppTextStyles.titleMedium.copyWith(
+                      fontWeight: FontWeight.w800,
+                      color: AppColors.textPrimary,
+                      fontSize: 18,
                     ),
-                  ],
+                    children: [
+                      TextSpan(
+                        text: tenant.name,
+                        style: const TextStyle(
+                          color: AppColors.success,
+                          fontWeight: FontWeight.w800,
+                        ),
+                      ),
+                    ],
+                  ),
+                  overflow: TextOverflow.ellipsis,
+                  maxLines: 2,
                 ),
               ),
+              const SizedBox(width: 8),
               IconButton(
                 icon: const Icon(Icons.close, size: 22, color: AppColors.textSecondary),
                 onPressed: () => Navigator.of(context).pop(),
@@ -291,7 +341,7 @@ class CustomerDetailsBottomSheet extends StatelessWidget {
                         _buildTableRow(
                           icon: Icons.badge_outlined,
                           label: AppStrings.labelIdProofs,
-                          valueWidget: _buildIdProofsList(tenant.idProofs),
+                          valueWidget: _buildIdProofsList(tenant.idProofs, context),
                         ),
                         _buildDivider(),
                         _buildTableRow(

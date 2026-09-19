@@ -35,7 +35,11 @@ class CollectionHistoryViewModel extends ChangeNotifier {
       if (_selectedFilter != 'all') {
         final normMethod = tx.paymentMethod.toLowerCase().replaceAll(' ', '_');
         final normFilter = _selectedFilter.toLowerCase().replaceAll(' ', '_');
-        if (normMethod != normFilter && !normMethod.contains(normFilter)) {
+        final isUpi = (normFilter == 'upi' || normFilter == 'online') &&
+            (normMethod == 'upi' || normMethod == 'online');
+        final isBank = (normFilter == 'bank_transfer' || normFilter == 'bank') &&
+            (normMethod.contains('bank') || normMethod.contains('transfer'));
+        if (!isUpi && !isBank && normMethod != normFilter && !normMethod.contains(normFilter)) {
           return false;
         }
       }

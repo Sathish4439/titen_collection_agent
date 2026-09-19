@@ -137,7 +137,9 @@ class CollectorRepository {
             id: 'bed-$rId-${i + 1}',
             bedNumber: i + 1,
             tenant: tenant,
-            amountDue: tenant.amountDue,
+            amountDue: tenant.balancePayable > 0
+                ? tenant.balancePayable
+                : (tenant.isPaid ? 0.0 : tenant.amountDue),
             isPaid: tenant.isPaid,
           ));
         }

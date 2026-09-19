@@ -20,6 +20,13 @@ class TenantRowWidget extends StatelessWidget {
     required this.onDetailsTap,
   });
 
+  String _formatCurrency(double amount) {
+    return '₹${amount.toStringAsFixed(0).replaceAllMapped(
+          RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
+          (Match m) => '${m[1]},',
+        )}';
+  }
+
   @override
   Widget build(BuildContext context) {
     final tenant = bed.tenant;
@@ -29,10 +36,12 @@ class TenantRowWidget extends StatelessWidget {
 
     final initials = tenant.initials;
     final name = tenant.name;
-    final formattedAmount = '${AppStrings.currencySymbol} ${bed.amountDue.toStringAsFixed(0).replaceAllMapped(
-          RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
-          (Match m) => '${m[1]},',
-        )}';
+    final totalAmount = tenant.amountDue;
+    final paidAmount = tenant.rentPaidAmount;
+    final remainingAmount = tenant.balancePayable > 0
+        ? tenant.balancePayable
+        : (tenant.isPaid ? 0.0 : bed.amountDue);
+    final isSettled = bed.isPaid || remainingAmount <= 0;
 
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 10),
@@ -60,7 +69,7 @@ class TenantRowWidget extends StatelessWidget {
             ),
           ),
           const SizedBox(width: 14),
-          // Name and Due Amount
+          // Name and Financial Breakdown (Due, Total, Paid)
           Expanded(
             child: GestureDetector(
               onTap: onDetailsTap,
@@ -73,21 +82,57 @@ class TenantRowWidget extends StatelessWidget {
                       fontWeight: FontWeight.w700,
                       color: AppColors.textPrimary,
                     ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                   ),
-                  const SizedBox(height: 3),
-                  Text(
-                    formattedAmount,
-                    style: AppTextStyles.bodyMedium.copyWith(
-                      fontWeight: FontWeight.w600,
-                      color: AppColors.textPrimary,
+                  const SizedBox(height: 2),
+                  if (!isSettled) ...[
+                    Text(
+                      'Due: ${_formatCurrency(remainingAmount)}',
+                      style: AppTextStyles.bodyMedium.copyWith(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w700,
+                        color: const Color(0xFFDC2626),
+                      ),
                     ),
-                  ),
+                    const SizedBox(height: 1),
+                    Text(
+                      'Total: ${_formatCurrency(totalAmount)} • Paid: ${_formatCurrency(paidAmount)}',
+                      style: AppTextStyles.labelSmall.copyWith(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w500,
+                        color: AppColors.textSecondary,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ] else ...[
+                    Text(
+                      'Paid: ${_formatCurrency(paidAmount > 0 ? paidAmount : totalAmount)}',
+                      style: AppTextStyles.bodyMedium.copyWith(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.success,
+                      ),
+                    ),
+                    const SizedBox(height: 1),
+                    Text(
+                      'Total: ${_formatCurrency(totalAmount)} • Settled',
+                      style: AppTextStyles.labelSmall.copyWith(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w500,
+                        color: AppColors.textSecondary,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
                 ],
               ),
             ),
           ),
           // Status / Action Button
-          if (bed.isPaid)
+          if (isSettled)
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 9),
               decoration: BoxDecoration(
@@ -104,7 +149,7 @@ class TenantRowWidget extends StatelessWidget {
             )
           else
             ElevatedButton(
-              onPressed: bed.amountDue > 0 ? onPayTap : null,
+              onPressed: remainingAmount > 0 ? onPayTap : null,
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.primary,
                 foregroundColor: Colors.white,

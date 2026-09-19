@@ -205,9 +205,21 @@ class RoomManagementViewModel extends ChangeNotifier {
       return false;
     }
 
+    final totalDue = _activeBedForPayment!.amountDue;
+
+    if (_paymentType == AppStrings.fullPayment) {
+      paymentAmountController.text = totalDue.toStringAsFixed(0);
+    } else if (_paymentType == AppStrings.partialPayment) {
+      final parsedAmount = double.tryParse(paymentAmountController.text.trim()) ?? 0.0;
+      if (parsedAmount >= totalDue) {
+        AppToast.error(AppStrings.partialPaymentMustBeLessThanDue);
+        return false;
+      }
+    }
+
     final validationError = Validators.validateAmount(
       paymentAmountController.text,
-      _activeBedForPayment!.amountDue,
+      totalDue,
     );
     if (validationError != null) {
       AppToast.error(validationError);

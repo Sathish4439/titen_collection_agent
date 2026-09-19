@@ -19,11 +19,51 @@ class RoomCardWidget extends StatelessWidget {
     required this.onTenantTap,
   });
 
+  String _formatCurrency(double amount) {
+    return '₹${amount.toStringAsFixed(0).replaceAllMapped(
+          RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
+          (Match m) => '${m[1]},',
+        )}';
+  }
+
+  Widget _buildMetricItem({
+    required String label,
+    required String amount,
+    required Color color,
+  }) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text(
+          label.toUpperCase(),
+          style: AppTextStyles.labelSmall.copyWith(
+            fontSize: 10,
+            fontWeight: FontWeight.w700,
+            color: AppColors.textSecondary,
+            letterSpacing: 0.5,
+          ),
+        ),
+        const SizedBox(height: 3),
+        FittedBox(
+          fit: BoxFit.scaleDown,
+          child: Text(
+            amount,
+            style: AppTextStyles.titleSmall.copyWith(
+              fontSize: 13,
+              fontWeight: FontWeight.w800,
+              color: color,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
+      padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
       decoration: BoxDecoration(
         color: AppColors.cardSurface,
         borderRadius: BorderRadius.circular(20),
@@ -39,15 +79,83 @@ class RoomCardWidget extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            room.roomNumber,
-            style: AppTextStyles.headlineMedium.copyWith(
-              fontSize: 24,
-              fontWeight: FontWeight.w800,
-              color: AppColors.textPrimary,
+          // Header: Room Number and Occupancy Badge
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                'Room ${room.roomNumber}',
+                style: AppTextStyles.headlineMedium.copyWith(
+                  fontSize: 22,
+                  fontWeight: FontWeight.w800,
+                  color: AppColors.textPrimary,
+                ),
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                decoration: BoxDecoration(
+                  color: AppColors.primaryLight,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: AppColors.primary.withValues(alpha: 0.2)),
+                ),
+                child: Text(
+                  '${room.occupiedBeds}/${room.totalBeds} Beds',
+                  style: AppTextStyles.labelSmall.copyWith(
+                    color: AppColors.primary,
+                    fontWeight: FontWeight.w700,
+                    fontSize: 11,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          // Financial Summary Strip (Total, Paid, Remaining)
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+            decoration: BoxDecoration(
+              color: AppColors.scaffoldBackground,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: AppColors.border.withValues(alpha: 0.6)),
+            ),
+            child: Row(
+              children: [
+                Expanded(
+                  child: _buildMetricItem(
+                    label: 'Total',
+                    amount: _formatCurrency(room.totalAmount),
+                    color: AppColors.textPrimary,
+                  ),
+                ),
+                Container(
+                  width: 1,
+                  height: 26,
+                  color: AppColors.border,
+                ),
+                Expanded(
+                  child: _buildMetricItem(
+                    label: 'Paid',
+                    amount: _formatCurrency(room.paidAmount),
+                    color: AppColors.success,
+                  ),
+                ),
+                Container(
+                  width: 1,
+                  height: 26,
+                  color: AppColors.border,
+                ),
+                Expanded(
+                  child: _buildMetricItem(
+                    label: 'Remaining',
+                    amount: _formatCurrency(room.remainingAmount),
+                    color: room.remainingAmount > 0 ? const Color(0xFFDC2626) : AppColors.success,
+                  ),
+                ),
+              ],
             ),
           ),
-          const SizedBox(height: 10),
+          const SizedBox(height: 8),
+          const Divider(color: AppColors.borderLight, height: 16),
           ...room.beds.map((bed) {
             return TenantRowWidget(
               room: room,

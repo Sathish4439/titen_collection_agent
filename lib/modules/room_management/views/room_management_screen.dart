@@ -171,8 +171,9 @@ class RoomManagementScreen extends StatelessWidget {
                         return RoomCardWidget(
                           room: room,
                           onPayTap: (RoomModel r, BedModel b) {
-                            context.read<RoomManagementViewModel>().selectBedForPayment(r, b);
-                            PaymentBottomSheet.show(context);
+                            final vm = context.read<RoomManagementViewModel>();
+                            vm.selectBedForPayment(r, b);
+                            PaymentBottomSheet.show(context, vm);
                           },
                           onTenantTap: (TenantModel tenant) {
                             context.read<RoomManagementViewModel>().selectTenantForDetails(tenant);

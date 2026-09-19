@@ -18,6 +18,13 @@ class RoomModel {
   int get occupiedBeds => beds.where((b) => !b.isVacant).length;
   int get vacantBeds => beds.where((b) => b.isVacant).length;
 
+  double get totalAmount =>
+      beds.fold(0.0, (sum, b) => sum + (b.tenant?.amountDue ?? 0.0));
+  double get paidAmount =>
+      beds.fold(0.0, (sum, b) => sum + (b.tenant?.rentPaidAmount ?? 0.0));
+  double get remainingAmount =>
+      beds.fold(0.0, (sum, b) => sum + (b.tenant?.balancePayable ?? (b.isPaid ? 0.0 : b.amountDue)));
+
   factory RoomModel.fromJson(Map<String, dynamic> json) {
     return RoomModel(
       id: json['id'] as String? ?? '',

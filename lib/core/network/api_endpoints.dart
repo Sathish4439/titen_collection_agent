@@ -13,7 +13,8 @@ class ApiEndpoints {
       return 'http://localhost:3000/api/v1/collector';
     }
     // Production API endpoint for Android & iOS mobile builds
-    return 'https://pg-admin-api.titanstay.com/api/v1/collector';
+   return 'https://pg-admin-api.titanstay.com/api/v1/collector';
+   // return 'http://192.168.31.86:3000/api/v1/collector';
   }
 
   // Endpoints relative to base URL

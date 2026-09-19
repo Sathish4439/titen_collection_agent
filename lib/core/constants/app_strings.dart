@@ -58,6 +58,10 @@ class AppStrings {
   static const String paymentInvalidAmount = 'Please enter a valid payment amount';
   static const String paymentExceedsDue = 'Amount cannot exceed amount due';
   static const String paymentSelectOptionError = 'Please select a payment option';
+  static const String fullPaymentAmountFixed = 'Amount cannot be edited for full payment';
+  static const String fullPaymentMustEqualDue = 'Full payment must equal total amount due';
+  static const String partialPaymentMustBeLessThanDue = 'Partial payment must be less than total amount due';
+  static const String selectPaymentFirst = 'Select payment type first';
 
   // Tenant Details Bottom Sheet
   static const String customerDetailsPrefix = 'Customer Details : ';
@@ -75,6 +79,11 @@ class AppStrings {
   static const String labelStatus = 'Status';
   static const String statusActive = 'Active';
   static const String statusInactive = 'Inactive';
+  static const String viewDocument = 'View Document';
+  static const String documentViewer = 'Document Viewer';
+  static const String failedToLoadDocument = 'Failed to load document';
+  static const String retry = 'Retry';
+  static const String view = 'View';
 
   // Collection History Screen
   static const String collectionHistoryTitle = 'Collection History';

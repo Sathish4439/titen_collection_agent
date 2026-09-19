@@ -11,14 +11,15 @@ import 'package:collection_agent/modules/room_management/viewmodel/room_manageme
 class PaymentBottomSheet extends StatelessWidget {
   const PaymentBottomSheet({super.key});
 
-  static void show(BuildContext context) {
+  static void show(BuildContext context, [RoomManagementViewModel? viewModel]) {
+    final vm = viewModel ?? context.read<RoomManagementViewModel>();
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (modalContext) {
+      builder: (_) {
         return ChangeNotifierProvider.value(
-          value: context.read<RoomManagementViewModel>(),
+          value: vm,
           child: const PaymentBottomSheet(),
         );
       },
@@ -260,11 +261,15 @@ class PaymentBottomSheet extends StatelessWidget {
             selector: (_, vm) => vm.paymentType,
             builder: (context, paymentType, _) {
               final vm = context.read<RoomManagementViewModel>();
+              final isFull = paymentType == AppStrings.fullPayment;
+              final isNotSelected = paymentType == AppStrings.selectPayment;
+              final isLocked = isFull || isNotSelected;
 
               return SizedBox(
                 height: 44,
                 child: TextFormField(
                   controller: vm.paymentAmountController,
+                 readOnly: isLocked,
                   keyboardType: TextInputType.number,
                   inputFormatters: [
                     FilteringTextInputFormatter.digitsOnly,
@@ -272,9 +277,27 @@ class PaymentBottomSheet extends StatelessWidget {
                   style: AppTextStyles.bodyMedium.copyWith(
                     fontWeight: FontWeight.w600,
                     fontSize: 13,
+                    color: isFull ? const Color(0xFF475569) : AppColors.textPrimary,
                   ),
                   decoration: InputDecoration(
                     isDense: true,
+                    filled: isLocked,
+                    fillColor: isLocked ? const Color(0xFFF1F5F9) : const Color(0xFFFAFAFA),
+                    hintText: isNotSelected ? AppStrings.selectPaymentFirst : null,
+                    hintStyle: AppTextStyles.bodyMedium.copyWith(
+                      color: AppColors.textSecondary,
+                      fontSize: 13,
+                    ),
+                    suffixIcon: isFull
+                        ? const Tooltip(
+                            message: AppStrings.fullPaymentAmountFixed,
+                            child: Icon(
+                              Icons.lock_outline,
+                              size: 18,
+                              color: AppColors.textSecondary,
+                            ),
+                          )
+                        : null,
                     contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(8),
@@ -286,7 +309,10 @@ class PaymentBottomSheet extends StatelessWidget {
                     ),
                     focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(8),
-                      borderSide: const BorderSide(color: AppColors.primary, width: 1.5),
+                      borderSide: BorderSide(
+                        color: isLocked ? const Color(0xFFE5E7EB) : AppColors.primary,
+                        width: isLocked ? 1 : 1.5,
+                      ),
                     ),
                   ),
                 ),
